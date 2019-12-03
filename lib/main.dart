@@ -1,6 +1,8 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'app.dart';
+import 'appDao.dart';
 
 void main() => runApp(MyApp());
 
@@ -27,10 +29,13 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
   List<String> appList;
+  AppDao appDao;
+  int appCount;
 
   @override
   void initState(){
     appList = List<String>();
+    appDao = AppDao();
 
     super.initState();
   }
@@ -38,7 +43,7 @@ class _MyHomePageState extends State<MyHomePage> {
   void getData() async {
     bool isEnd = false;
     int startIndex = 0;
-    var tempAppMap = Map<String, String>();
+    var tempAppMap = Map<String, App>();
 
     do {
       await http.get(Uri.https(
@@ -49,12 +54,18 @@ class _MyHomePageState extends State<MyHomePage> {
         if (response.statusCode == 200) {
           var responseData = json.decode(response.body);
           responseData['appList'].forEach((item) =>
-            tempAppMap[item['appId'].toString()] = item['appName']
+            tempAppMap[item['appId'].toString()] = App(
+              item['appId'],
+              item['appName'],
+              item['editorIntro'],
+              item['iconUrl'],
+              item['packageName'],
+            )
           );
           
-          setState(() {
-            appList = tempAppMap.values.toList();
-          });
+          // setState(() {
+          //   appCount = tempAppMap.length;
+          // });
 
           startIndex += 100;
           isEnd = !responseData['isLastBatch'];
@@ -65,9 +76,11 @@ class _MyHomePageState extends State<MyHomePage> {
       });
     } while (isEnd);
 
-    // setState(() {
-    //   appMap = tempAppMap;
-    // });
+    await appDao.insertMany(tempAppMap.values.toList());
+    int tempCount = await appDao.getCount();
+    setState(() {
+      appCount = tempCount;
+    });
   }
 
   @override
@@ -80,7 +93,12 @@ class _MyHomePageState extends State<MyHomePage> {
         mainAxisAlignment: MainAxisAlignment.center,
         children: <Widget>[
           Text(
-            'App Count: ${appList.length}',
+            'App Count: ${appCount.toString()}',
+          ),
+          RaisedButton(
+            onPressed: () async {
+              await appDao.deleteAll();
+            },
           ),
           Expanded(
             child: ListView.builder(
