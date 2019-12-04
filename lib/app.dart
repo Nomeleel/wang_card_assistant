@@ -1,5 +1,5 @@
 class App {
-  int Id;
+  String Id;
   String Name;
   String Description;
   String IconUrl;

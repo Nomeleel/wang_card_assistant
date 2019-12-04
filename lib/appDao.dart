@@ -50,26 +50,45 @@ class AppDao {
   }
 
   Future deleteAll() async {
-    await database.delete(tableName);
+    await database.rawDelete('DELETE FROM $tableName');
   }
 
   Future<int> getCount() async {
     return Sqflite.firstIntValue(await database.rawQuery('SELECT COUNT(*) FROM $tableName'));
   }
 
-  // TODO find imp
+  Future<List<App>> findAll() async {
+    return mapList(await database.rawQuery('SELECT * FROM $tableName'));
+  }
+
+  Future<List<App>> findMany(int startIndex, int count) async {
+    return mapList(await database.rawQuery('SELECT * FROM $tableName LIMIT $startIndex, $count'));
+  }
 
   Map<String, dynamic> toMap(App app) {
-    var map = <String, dynamic> {
+    return <String, dynamic> {
       colId: app.Id,
       colName: app.Name,
       colDescription: app.Description,
       colIconUrl: app.IconUrl,
       colPackageName: app.PackageName,
     };
-
-    return map;
   }
 
+  App map(Map<String, dynamic> map) {
+    return App(
+      map[colId],
+      map[colName],
+      map[colDescription],
+      map[colIconUrl],
+      map[colPackageName],
+    );
+  }
+
+  List<App> mapList(List<Map<String, dynamic>> mapList) {
+    var appList = List<App>();
+    mapList.forEach((item) => appList.add(map(item)));
+    return appList;
+  }
 
 }
