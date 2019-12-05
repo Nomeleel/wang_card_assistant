@@ -13,16 +13,16 @@ class AppDao {
 
   Database database;
   String fullPath;
-  
-  AppDao(){
-    init();
-  }
 
   void init() {
     initDataBase();
   }
 
-  void initDataBase() async {
+  Future initAndRun(Function fun) async {
+    await initDataBase().then(fun);
+  }
+
+  Future initDataBase() async {
     var databasesPath = await getDatabasesPath();
     fullPath = join(databasesPath, 'local.db');
 

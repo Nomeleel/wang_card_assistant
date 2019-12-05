@@ -33,11 +33,14 @@ class _MyHomePageState extends State<MyHomePage> {
   AppDao appDao;
   int appCount;
 
+  bool _isLoadMore;
+
   @override
   void initState() {
     appList = List<App>();
     controller = ScrollController();
-    appDao = AppDao();
+    appDao = AppDao()..initAndRun((value) => getMore());
+    _isLoadMore = false;
 
     super.initState();
   }
@@ -77,15 +80,22 @@ class _MyHomePageState extends State<MyHomePage> {
     await appDao.insertMany(tempAppMap.values.toList());
   }
 
-  void getMore() async {
+  Future<int> getMore() async {
     var result = await appDao.findMany(appList.length, 10);
-    setState(() {
-      appList.addAll(result);
-    });
-  }
+    if (result.length > 0) {
+      setState(() {
+        appList.addAll(result);
+      });
+    }
+
+    return result.length;
+  }  
+
+  // TODO jump to top.
 
   @override
   Widget build(BuildContext context) {
+    print('build');
     return Scaffold(
       appBar: AppBar(
         title: Text(widget.title),
@@ -125,10 +135,16 @@ class _MyHomePageState extends State<MyHomePage> {
               controller: controller
                 ..addListener((){
                   print(controller.position.maxScrollExtent);
-                  if (controller.position.pixels == controller.position.maxScrollExtent) {
-                    // TODO: No more data.
-                    // TODO: execute once.
-                    getMore();
+                  if (!_isLoadMore && controller.position.pixels >= controller.position.maxScrollExtent) {
+                    _isLoadMore = true;
+                    getMore().then((value) {
+                      if (value == 10) {
+                        _isLoadMore = false;
+                      } else{
+                        print('no more data $value');
+                        // TODO: No more data label.
+                      }
+                    });
                   }
                 }
               ),
@@ -150,4 +166,12 @@ class _MyHomePageState extends State<MyHomePage> {
       ),
     );
   }
+
+  @override
+  void dispose(){
+    controller.dispose();
+
+    super.dispose();
+  }
+
 }
