@@ -129,41 +129,76 @@ class _MyHomePageState extends State<MyHomePage> {
             child: Text('Get Count'),
           ),
           Expanded(
-            child: ListView.builder(
-              itemCount: appList.length,
-              physics: BouncingScrollPhysics(),
-              controller: controller
-                ..addListener((){
-                  print(controller.position.maxScrollExtent);
-                  if (!_isLoadMore && controller.position.pixels >= controller.position.maxScrollExtent) {
-                    _isLoadMore = true;
-                    getMore().then((value) {
-                      if (value == 10) {
-                        _isLoadMore = false;
-                      } else{
-                        print('no more data $value');
-                        // TODO: No more data label.
+            child: Stack(
+              children: <Widget>[
+                ListView.builder(
+                  itemCount: appList.length,
+                  physics: BouncingScrollPhysics(),
+                  controller: controller
+                    ..addListener((){
+                      print(controller.position.pixels);
+                      print(controller.hasClients);
+                      if (!_isLoadMore && controller.position.pixels >= controller.position.maxScrollExtent) {
+                        _isLoadMore = true;
+                        getMore().then((value) {
+                          if (value == 10) {
+                            _isLoadMore = false;
+                          } else{
+                            print('no more data $value');
+                            // TODO: No more data label.
+                          }
+                        });
                       }
-                    });
-                  }
-                }
-              ),
-              itemBuilder: (context, index) {
-                return Text(appList[index].Name,
-                  style: TextStyle(
-                    fontSize: 30,
+
+                      // position on 200 up and down refresh view.
+                      if (controller.position.pixels >= 170 && controller.position.pixels <= 230) {
+                        setState(() {
+                          
+                        });
+                      }
+                    }
                   ),
-                );
-              },
+                  itemBuilder: (context, index) {
+                    return Text(appList[index].Name,
+                      style: TextStyle(
+                        fontSize: 30,
+                      ),
+                    );
+                  },
+                ),
+                Positioned(
+                  bottom: (controller.hasClients && controller.position.pixels > 20) ? 15 : -50,
+                  right: 10,
+                  child: ClipOval(
+                    child: Container(
+                      height: 40,
+                      width: 40,
+                      color: Theme.of(context).focusColor,
+                      child: IconButton(
+                        icon: Icon(Icons.arrow_upward),
+                        onPressed: () => {
+                          controller.animateTo(
+                            0,
+                            duration: Duration(
+                              milliseconds: (controller.position.pixels * 0.3).toInt(),
+                            ),
+                            curve: Curves.easeInOut,
+                          )
+                        },
+                      ),
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
         ],
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: getData,
-        tooltip: 'Get Data',
-        child: Icon(Icons.refresh),
-      ),
+      // floatingActionButton: FloatingActionButton(
+      //   onPressed: getData,
+      //   tooltip: 'Get Data',
+      //   child: Icon(Icons.refresh),
+      // ),
     );
   }
 
