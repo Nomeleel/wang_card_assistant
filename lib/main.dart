@@ -33,6 +33,8 @@ class _MyHomePageState extends State<MyHomePage> {
   AppDao appDao;
   int appCount;
 
+  final int showTopButtonHeightLimit = 200;
+
   bool _isLoadMore;
 
   @override
@@ -151,9 +153,10 @@ class _MyHomePageState extends State<MyHomePage> {
                       }
 
                       // position on 200 up and down refresh view.
-                      if (controller.position.pixels >= 170 && controller.position.pixels <= 230) {
+                      if ((controller.position.axisDirection == AxisDirection.down && controller.position.pixels >= showTopButtonHeightLimit) ||
+                      (controller.position.axisDirection == AxisDirection.up && controller.position.pixels <= showTopButtonHeightLimit)) {
                         setState(() {
-                          
+                          print('refresh');
                         });
                       }
                     }
@@ -167,7 +170,7 @@ class _MyHomePageState extends State<MyHomePage> {
                   },
                 ),
                 Positioned(
-                  bottom: (controller.hasClients && controller.position.pixels > 20) ? 15 : -50,
+                  bottom: (controller.hasClients && controller.position.pixels > showTopButtonHeightLimit) ? 15 : -50,
                   right: 10,
                   child: ClipOval(
                     child: Container(
