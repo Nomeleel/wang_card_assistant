@@ -197,11 +197,11 @@ class _MyHomePageState extends State<MyHomePage> {
           ),
         ],
       ),
-      // floatingActionButton: FloatingActionButton(
-      //   onPressed: getData,
-      //   tooltip: 'Get Data',
-      //   child: Icon(Icons.refresh),
-      // ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: getData,
+        tooltip: 'Get Data',
+        child: Icon(Icons.refresh),
+      ),
     );
   }
 
