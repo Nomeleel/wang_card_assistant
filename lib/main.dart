@@ -1,8 +1,10 @@
 import 'dart:convert';
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'app.dart';
 import 'appDao.dart';
+import 'package:path_provider/path_provider.dart';
 
 void main() => runApp(MyApp());
 
@@ -129,6 +131,25 @@ class _MyHomePageState extends State<MyHomePage> {
               });
             },
             child: Text('Get Count'),
+          ),
+          RaisedButton(
+            onPressed: () async {
+              print('-----------------');
+              if(Platform.isAndroid){
+                Directory tempDir = await getTemporaryDirectory();
+                String tempPath = tempDir.path;
+                print(tempPath);
+                Directory appDocDir = await getApplicationDocumentsDirectory();
+                String appDocPath = appDocDir.path;
+                print(appDocPath);
+                // var cacheDocDirList = await getExternalCacheDirectories();
+                // cacheDocDirList.forEach((item) {
+                //   print(item.path);
+                // });
+              }
+              print('-----------------');
+            },
+            child: Text('Test Path'),
           ),
           Expanded(
             child: Stack(
