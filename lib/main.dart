@@ -137,15 +137,22 @@ class _MyHomePageState extends State<MyHomePage> {
               print('-----------------');
               if(Platform.isAndroid){
                 Directory tempDir = await getTemporaryDirectory();
-                String tempPath = tempDir.path;
-                print(tempPath);
+                print(tempDir.path);
+                print('-----------------');
+                Directory appDir = await getApplicationSupportDirectory();
+                print(appDir.path);
+                print('-----------------');
                 Directory appDocDir = await getApplicationDocumentsDirectory();
-                String appDocPath = appDocDir.path;
-                print(appDocPath);
-                // var cacheDocDirList = await getExternalCacheDirectories();
-                // cacheDocDirList.forEach((item) {
-                //   print(item.path);
-                // });
+                print(appDocDir.path);
+                print('-----------------');
+                await getExternalCacheDirectories()..forEach((item) {
+                  print(item.path);
+                });
+                print('-----------------');
+                await getExternalStorageDirectories()..forEach((item) {
+                  print(item.path);
+                });
+                print('-----------------');
               }
               print('-----------------');
             },
