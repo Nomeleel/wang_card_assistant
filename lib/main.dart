@@ -69,6 +69,7 @@ class _MyHomePageState extends State<MyHomePage> {
               item['editorIntro'],
               item['iconUrl'],
               item['packageName'],
+              '7777777'
             )
           );
 
@@ -190,7 +191,7 @@ class _MyHomePageState extends State<MyHomePage> {
                     }
                   ),
                   itemBuilder: (context, index) {
-                    return Text(appList[index].Name,
+                    return Text(appList[index].name,
                       style: TextStyle(
                         fontSize: 30,
                       ),

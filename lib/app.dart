@@ -1,10 +1,11 @@
 class App {
-  String Id;
-  String Name;
-  String Description;
-  String IconUrl;
-  String PackageName;
+  String id;
+  String name;
+  String description;
+  String iconUrl;
+  String packageName;
+  String bundleId;
 
-  App(this.Id, this.Name, this.Description, this.IconUrl, this.PackageName);
+  App(this.id, this.name, this.description, this.iconUrl, this.packageName, this.bundleId);
 
 }

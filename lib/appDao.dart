@@ -1,3 +1,5 @@
+import 'dart:io';
+import 'package:flutter/services.dart';
 import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
 
@@ -10,6 +12,7 @@ class AppDao {
   final String colDescription = 'description';
   final String colIconUrl = 'icon_url';
   final String colPackageName = 'package_name';
+  final String colBundleId = 'bundle_id';
 
   Database database;
   String fullPath;
@@ -28,14 +31,19 @@ class AppDao {
 
     database = await openDatabase(fullPath, version: 1,
       onCreate: (Database db, int version) async {
-        await db.execute('''CREATE TABLE $tableName (
-            $colId TEXT PRIMARY KEY, 
-            $colName TEXT, 
-            $colDescription TEXT, 
-            $colIconUrl TEXT,
-            $colPackageName TEXT
-          )'''
-        );
+        
+        ByteData byteData = await rootBundle.load('assets/dababase/test.db');
+        File(fullPath)..writeAsBytes(byteData.buffer.asInt8List(0));
+
+        // await db.execute('''CREATE TABLE $tableName (
+        //     $colId TEXT PRIMARY KEY, 
+        //     $colName TEXT, 
+        //     $colDescription TEXT, 
+        //     $colIconUrl TEXT,
+        //     $colPackageName TEXT,
+        //     $colBundleId TEXT
+        //   )'''
+        // );
       }
     );
 
@@ -67,11 +75,12 @@ class AppDao {
 
   Map<String, dynamic> toMap(App app) {
     return <String, dynamic> {
-      colId: app.Id,
-      colName: app.Name,
-      colDescription: app.Description,
-      colIconUrl: app.IconUrl,
-      colPackageName: app.PackageName,
+      colId: app.id,
+      colName: app.name,
+      colDescription: app.description,
+      colIconUrl: app.iconUrl,
+      colPackageName: app.packageName,
+      colBundleId: app.bundleId,
     };
   }
 
@@ -82,6 +91,7 @@ class AppDao {
       map[colDescription],
       map[colIconUrl],
       map[colPackageName],
+      map[colBundleId],
     );
   }
 
