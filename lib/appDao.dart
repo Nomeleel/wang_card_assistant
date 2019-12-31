@@ -15,7 +15,6 @@ class AppDao {
   final String colBundleId = 'bundle_id';
 
   Database database;
-  String fullPath;
 
   void init() {
     initDataBase();
@@ -27,28 +26,30 @@ class AppDao {
 
   Future initDataBase() async {
     var databasesPath = await getDatabasesPath();
-    fullPath = join(databasesPath, 'local.db');
+    String fullPath = join(databasesPath, 'local.db');
+    if (!(await databaseExists(fullPath))) {
+        ByteData byteData = await rootBundle.load('assets/database/local.db');
+        File(fullPath)..writeAsBytes(byteData.buffer.asInt8List(0));
+    }
 
+    database = await openDatabase(fullPath);
+
+    /*
     database = await openDatabase(fullPath, version: 1,
       onCreate: (Database db, int version) async {
-        
-        ByteData byteData = await rootBundle.load('assets/dababase/test.db');
-        File(fullPath)..writeAsBytes(byteData.buffer.asInt8List(0));
-
-        // await db.execute('''CREATE TABLE $tableName (
-        //     $colId TEXT PRIMARY KEY, 
-        //     $colName TEXT, 
-        //     $colDescription TEXT, 
-        //     $colIconUrl TEXT,
-        //     $colPackageName TEXT,
-        //     $colBundleId TEXT
-        //   )'''
-        // );
+        await db.execute('''CREATE TABLE $tableName (
+            $colId TEXT PRIMARY KEY, 
+            $colName TEXT, 
+            $colDescription TEXT, 
+            $colIconUrl TEXT,
+            $colPackageName TEXT,
+            $colBundleId TEXT
+          )'''
+        );
       }
     );
-
+    */
   }
-
 
   Future insertMany(List<App> appList) async {
     Batch batch = database.batch();

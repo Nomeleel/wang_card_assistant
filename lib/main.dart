@@ -97,6 +97,7 @@ class _MyHomePageState extends State<MyHomePage> {
   }  
 
   // TODO jump to top.
+  // TODO IOS do not have many wang card app
 
   @override
   Widget build(BuildContext context) {
