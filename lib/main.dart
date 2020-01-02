@@ -30,6 +30,7 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
+  final _listKey = GlobalKey<AnimatedListState>();
   List<App> appList;
   ScrollController controller;
   AppDao appDao;
@@ -88,8 +89,12 @@ class _MyHomePageState extends State<MyHomePage> {
   Future<int> getMore() async {
     var result = await appDao.findMany(appList.length, 10);
     if (result.length > 0) {
-      setState(() {
-        appList.addAll(result);
+      //setState(() {
+        //appList.addAll(result);
+      //});
+      result.forEach((item) {
+        appList.add(item);
+        _listKey.currentState.insertItem(appList.length - 1, duration: Duration(milliseconds: 777));
       });
     }
 
@@ -163,8 +168,9 @@ class _MyHomePageState extends State<MyHomePage> {
           Expanded(
             child: Stack(
               children: <Widget>[
-                ListView.builder(
-                  itemCount: appList.length,
+                AnimatedList(
+                  key: _listKey,
+                  initialItemCount: appList.length,
                   physics: BouncingScrollPhysics(),
                   controller: controller
                     ..addListener((){
@@ -191,12 +197,25 @@ class _MyHomePageState extends State<MyHomePage> {
                       }
                     }
                   ),
-                  itemBuilder: (context, index) {
-                    return Text(appList[index].name,
-                      style: TextStyle(
-                        fontSize: 30,
+                  itemBuilder: (context, index, animation) {
+                    return SlideTransition(
+                      position: animation.drive(
+                        CurveTween(curve: Curves.elasticInOut)
+                      ).drive(
+                        Tween<Offset>(
+                          begin: Offset(-1, 0),
+                          end: Offset(0, 0),
+                        )
                       ),
-                    );
+                      child: Card(
+                        color: Colors.purple,
+                        child: Text(appList[index].name,
+                          style: TextStyle(
+                            fontSize: 30,
+                          ),
+                        ),
+                        ),
+                      );
                   },
                 ),
                 Positioned(
