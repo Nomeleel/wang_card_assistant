@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'app.dart';
@@ -207,15 +208,8 @@ class _MyHomePageState extends State<MyHomePage> {
                           end: Offset(0, 0),
                         )
                       ),
-                      child: Card(
-                        color: Colors.purple,
-                        child: Text(appList[index].name,
-                          style: TextStyle(
-                            fontSize: 30,
-                          ),
-                        ),
-                        ),
-                      );
+                      child: listItemBuilder(appList[index]),
+                    );
                   },
                 ),
                 Positioned(
@@ -251,6 +245,91 @@ class _MyHomePageState extends State<MyHomePage> {
         tooltip: 'Get Data',
         child: Icon(Icons.refresh),
       ),
+    );
+  }
+
+  // TODO Find free slim font.
+  Widget listItemBuilder(App app){
+    return Row(
+      children: <Widget> [
+        Padding(
+          padding: EdgeInsets.fromLTRB(15, 10, 10, 10),
+          child: Image.network(
+            app.iconUrl,
+            width: 55,
+            height: 55,
+          ),
+        ),
+        Expanded(
+          child: Container(
+            height: 76,
+            decoration: BoxDecoration(
+              color: Colors.transparent,
+              border: Border(
+                bottom: BorderSide(
+                  color: Colors.black,
+                  width: 0.1,
+                ),
+              )
+            ),
+            child: Row(
+              children: <Widget>[
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: <Widget>[
+                      Padding(
+                        padding: EdgeInsets.only(top: 11),
+                        child: Text(
+                          app.name,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            fontSize: 18.5,
+                          ),
+                        ),
+                      ),
+                      Padding(
+                        padding: EdgeInsets.only(top: 5),
+                        child: Text(
+                          app.description,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            fontSize: 15.5,
+                            color: Colors.grey,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                CupertinoButton(
+                  child: Container(
+                    width: 63,
+                    height: 28,
+                    alignment: Alignment.center,
+                    decoration: BoxDecoration(
+                      color: Colors.blueAccent,
+                      borderRadius: BorderRadius.all(
+                        Radius.circular(15)
+                      )
+                    ),
+                    child: Text(
+                      "打开",
+                      style: TextStyle(
+                        fontSize: 14.5,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ),
+                  onPressed: () {
+
+                  },
+                )
+              ],
+            ),
+          ),
+        ),
+      ]
     );
   }
 
