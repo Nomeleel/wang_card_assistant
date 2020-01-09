@@ -40,6 +40,8 @@ class _MyHomePageState extends State<MyHomePage> {
   final int showTopButtonHeightLimit = 200;
 
   bool _isLoadMore;
+  List<String> _localInstalledAppList;
+  Map<String, bool> _currentInstalledAppMap;
 
   @override
   void initState() {
@@ -47,7 +49,8 @@ class _MyHomePageState extends State<MyHomePage> {
     controller = ScrollController();
     appDao = AppDao()..initAndRun((value) => getMore());
     _isLoadMore = false;
-
+    _localInstalledAppList = List<String>();
+    _currentInstalledAppMap = Map<String, bool>();
     super.initState();
   }
 
@@ -89,6 +92,8 @@ class _MyHomePageState extends State<MyHomePage> {
 
   Future<int> getMore() async {
     var result = await appDao.findMany(appList.length, 10);
+    filter(result);
+    checkInstallInfo(result);
     if (result.length > 0) {
       //setState(() {
         //appList.addAll(result);
@@ -102,8 +107,26 @@ class _MyHomePageState extends State<MyHomePage> {
     return result.length;
   }  
 
+  void filter(List<App> appList) {
+    appList.removeWhere((item) {
+      if (Platform.isAndroid) {
+        return item.packageName == null || item.packageName == '';
+      } else if (Platform.isIOS) {
+        return item.bundleId == null || item.bundleId == '';
+      } else{
+        // Nothing to do.
+      }
+      return false;
+    });
+  }
+
+  void checkInstallInfo(List<App> appList) {
+    appList.forEach((item) {
+      _currentInstalledAppMap[item.packageName] = _localInstalledAppList.contains(item.packageName);
+    });
+  }
+
   // TODO jump to top.
-  // TODO IOS do not have many wang card app
 
   @override
   Widget build(BuildContext context) {
@@ -302,34 +325,46 @@ class _MyHomePageState extends State<MyHomePage> {
                     ],
                   ),
                 ),
-                CupertinoButton(
-                  child: Container(
-                    width: 63,
-                    height: 28,
-                    alignment: Alignment.center,
-                    decoration: BoxDecoration(
-                      color: Colors.blueAccent,
-                      borderRadius: BorderRadius.all(
-                        Radius.circular(15)
-                      )
-                    ),
-                    child: Text(
-                      "打开",
-                      style: TextStyle(
-                        fontSize: 14.5,
-                        color: Colors.white,
-                      ),
-                    ),
-                  ),
-                  onPressed: () {
+                (_currentInstalledAppMap[app.packageName]
+                  ? actionButton("打开", () {
+                    var appKey = Platform.isAndroid ? app.packageName : app.bundleId;
+                    //openApp(appKey);
+                  })
+                  : actionButton("获取", () {
 
-                  },
-                )
+                  })
+                ),
               ],
             ),
           ),
         ),
       ]
+    );
+  }
+
+  Widget actionButton(String label, Function function) {
+    return CupertinoButton(
+      child: Container(
+        width: 63,
+        height: 28,
+        alignment: Alignment.center,
+        decoration: BoxDecoration(
+          color: Colors.blueAccent,
+          borderRadius: BorderRadius.all(
+            Radius.circular(15)
+          )
+        ),
+        child: Text(
+          label,
+          style: TextStyle(
+            fontSize: 14.5,
+            color: Colors.white,
+          ),
+        ),
+      ),
+      onPressed: () {
+        function();
+      }
     );
   }
 
