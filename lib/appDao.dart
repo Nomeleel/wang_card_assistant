@@ -13,6 +13,7 @@ class AppDao {
   final String colIconUrl = 'icon_url';
   final String colPackageName = 'package_name';
   final String colBundleId = 'bundle_id';
+  final String colUrlScheme = 'url_scheme';
 
   Database database;
 
@@ -43,7 +44,8 @@ class AppDao {
             $colDescription TEXT, 
             $colIconUrl TEXT,
             $colPackageName TEXT,
-            $colBundleId TEXT
+            $colBundleId TEXT,
+            $colUrlScheme TEXT
           )'''
         );
       }
@@ -82,6 +84,7 @@ class AppDao {
       colIconUrl: app.iconUrl,
       colPackageName: app.packageName,
       colBundleId: app.bundleId,
+      colUrlScheme: app.urlScheme,
     };
   }
 
@@ -93,6 +96,7 @@ class AppDao {
       map[colIconUrl],
       map[colPackageName],
       map[colBundleId],
+      map[colUrlScheme],
     );
   }
 

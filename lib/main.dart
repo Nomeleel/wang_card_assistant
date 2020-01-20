@@ -6,6 +6,7 @@ import 'package:http/http.dart' as http;
 import 'app.dart';
 import 'appDao.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:platform/platform.dart';
 
 void main() => runApp(MyApp());
 
@@ -31,6 +32,8 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
+  static const Platform _platform = const LocalPlatform();
+
   final _listKey = GlobalKey<AnimatedListState>();
   List<App> appList;
   ScrollController controller;
@@ -40,7 +43,6 @@ class _MyHomePageState extends State<MyHomePage> {
   final int showTopButtonHeightLimit = 200;
 
   bool _isLoadMore;
-  List<String> _localInstalledAppList;
   Map<String, bool> _currentInstalledAppMap;
 
   @override
@@ -49,7 +51,6 @@ class _MyHomePageState extends State<MyHomePage> {
     controller = ScrollController();
     appDao = AppDao()..initAndRun((value) => getMore());
     _isLoadMore = false;
-    _localInstalledAppList = List<String>();
     _currentInstalledAppMap = Map<String, bool>();
     super.initState();
   }
@@ -60,23 +61,25 @@ class _MyHomePageState extends State<MyHomePage> {
     var tempAppMap = Map<String, App>();
 
     do {
-      await http.get(Uri.https(
-        'pngweb.3g.qq.com', 
-        '/KingSimCardFreeFlowAppListGet', 
+      await http
+          .get(Uri.https(
+        'pngweb.3g.qq.com',
+        '/KingSimCardFreeFlowAppListGet',
         {'classId': "0", 'startIndex': '$startIndex', 'pageSize': '100'},
-      )).then((http.Response response) {
+      ))
+          .then((http.Response response) {
         if (response.statusCode == 200) {
           var responseData = json.decode(response.body);
-          responseData['appList'].forEach((item) =>
-            tempAppMap[item['appId'].toString()] = App(
-              item['appId'].toString(),
-              item['appName'],
-              item['editorIntro'],
-              item['iconUrl'],
-              item['packageName'],
-              '7777777'
-            )
-          );
+          responseData['appList']
+              .forEach((item) => tempAppMap[item['appId'].toString()] = App(
+                    item['appId'].toString(),
+                    item['appName'],
+                    item['editorIntro'],
+                    item['iconUrl'],
+                    item['packageName'],
+                    '7777777',
+                    '7777777://',
+                  ));
 
           startIndex += 100;
           isEnd = !responseData['isLastBatch'];
@@ -96,24 +99,25 @@ class _MyHomePageState extends State<MyHomePage> {
     checkInstallInfo(result);
     if (result.length > 0) {
       //setState(() {
-        //appList.addAll(result);
+      //appList.addAll(result);
       //});
       result.forEach((item) {
         appList.add(item);
-        _listKey.currentState.insertItem(appList.length - 1, duration: Duration(milliseconds: 777));
+        _listKey.currentState.insertItem(appList.length - 1,
+            duration: Duration(milliseconds: 777));
       });
     }
 
     return result.length;
-  }  
+  }
 
   void filter(List<App> appList) {
     appList.removeWhere((item) {
-      if (Platform.isAndroid) {
+      if (_platform.isAndroid) {
         return item.packageName == null || item.packageName == '';
-      } else if (Platform.isIOS) {
+      } else if (_platform.isIOS) {
         return item.bundleId == null || item.bundleId == '';
-      } else{
+      } else {
         // Nothing to do.
       }
       return false;
@@ -121,9 +125,12 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   void checkInstallInfo(List<App> appList) {
-    appList.forEach((item) {
-      _currentInstalledAppMap[item.packageName] = _localInstalledAppList.contains(item.packageName);
-    });
+    var appKeyList = appList
+        .map((item) => (_platform.isAndroid ? item.packageName : item.urlScheme))
+        .toList();
+    appKeyList.removeWhere((item) => item == null || item == '');
+    //var isInstallMap = isInstalledMap(appKeyList);
+    //_currentInstalledAppMap.addAll(isInstallMap);
   }
 
   // TODO jump to top.
@@ -166,7 +173,7 @@ class _MyHomePageState extends State<MyHomePage> {
           RaisedButton(
             onPressed: () async {
               print('-----------------');
-              if(Platform.isAndroid){
+              if (_platform.isAndroid) {
                 Directory tempDir = await getTemporaryDirectory();
                 print(tempDir.path);
                 print('-----------------');
@@ -176,13 +183,15 @@ class _MyHomePageState extends State<MyHomePage> {
                 Directory appDocDir = await getApplicationDocumentsDirectory();
                 print(appDocDir.path);
                 print('-----------------');
-                await getExternalCacheDirectories()..forEach((item) {
-                  print(item.path);
-                });
+                await getExternalCacheDirectories()
+                  ..forEach((item) {
+                    print(item.path);
+                  });
                 print('-----------------');
-                await getExternalStorageDirectories()..forEach((item) {
-                  print(item.path);
-                });
+                await getExternalStorageDirectories()
+                  ..forEach((item) {
+                    print(item.path);
+                  });
                 print('-----------------');
               }
               print('-----------------');
@@ -197,15 +206,17 @@ class _MyHomePageState extends State<MyHomePage> {
                   initialItemCount: appList.length,
                   physics: BouncingScrollPhysics(),
                   controller: controller
-                    ..addListener((){
+                    ..addListener(() {
                       print(controller.position.pixels);
                       print(controller.hasClients);
-                      if (!_isLoadMore && controller.position.pixels >= controller.position.maxScrollExtent) {
+                      if (!_isLoadMore &&
+                          controller.position.pixels >=
+                              controller.position.maxScrollExtent) {
                         _isLoadMore = true;
                         getMore().then((value) {
                           if (value == 10) {
                             _isLoadMore = false;
-                          } else{
+                          } else {
                             print('no more data $value');
                             // TODO: No more data label.
                           }
@@ -213,30 +224,36 @@ class _MyHomePageState extends State<MyHomePage> {
                       }
 
                       // position on 200 up and down refresh view.
-                      if ((controller.position.axisDirection == AxisDirection.down && controller.position.pixels >= showTopButtonHeightLimit) ||
-                      (controller.position.axisDirection == AxisDirection.up && controller.position.pixels <= showTopButtonHeightLimit)) {
+                      if ((controller.position.axisDirection ==
+                                  AxisDirection.down &&
+                              controller.position.pixels >=
+                                  showTopButtonHeightLimit) ||
+                          (controller.position.axisDirection ==
+                                  AxisDirection.up &&
+                              controller.position.pixels <=
+                                  showTopButtonHeightLimit)) {
                         setState(() {
                           print('refresh');
                         });
                       }
-                    }
-                  ),
+                    }),
                   itemBuilder: (context, index, animation) {
                     return SlideTransition(
-                      position: animation.drive(
-                        CurveTween(curve: Curves.elasticInOut)
-                      ).drive(
-                        Tween<Offset>(
-                          begin: Offset(-1, 0),
-                          end: Offset(0, 0),
-                        )
-                      ),
+                      position: animation
+                          .drive(CurveTween(curve: Curves.elasticInOut))
+                          .drive(Tween<Offset>(
+                            begin: Offset(-1, 0),
+                            end: Offset(0, 0),
+                          )),
                       child: listItemBuilder(appList[index]),
                     );
                   },
                 ),
                 Positioned(
-                  bottom: (controller.hasClients && controller.position.pixels > showTopButtonHeightLimit) ? 15 : -50,
+                  bottom: (controller.hasClients &&
+                          controller.position.pixels > showTopButtonHeightLimit)
+                      ? 15
+                      : -50,
                   right: 10,
                   child: ClipOval(
                     child: Container(
@@ -249,7 +266,8 @@ class _MyHomePageState extends State<MyHomePage> {
                           controller.animateTo(
                             0,
                             duration: Duration(
-                              milliseconds: (controller.position.pixels * 0.3).toInt(),
+                              milliseconds:
+                                  (controller.position.pixels * 0.3).toInt(),
                             ),
                             curve: Curves.easeInOut,
                           )
@@ -272,107 +290,104 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   // TODO Find free slim font.
-  Widget listItemBuilder(App app){
-    return Row(
-      children: <Widget> [
-        Padding(
-          padding: EdgeInsets.fromLTRB(15, 10, 10, 10),
-          child: Image.network(
-            app.iconUrl,
-            width: 55,
-            height: 55,
-          ),
+  Widget listItemBuilder(App app) {
+    return Row(children: <Widget>[
+      Padding(
+        padding: EdgeInsets.fromLTRB(15, 10, 10, 10),
+        child: Image.network(
+          app.iconUrl,
+          width: 55,
+          height: 55,
         ),
-        Expanded(
-          child: Container(
-            height: 76,
-            decoration: BoxDecoration(
+      ),
+      Expanded(
+        child: Container(
+          height: 76,
+          decoration: BoxDecoration(
               color: Colors.transparent,
               border: Border(
                 bottom: BorderSide(
                   color: Colors.black,
                   width: 0.1,
                 ),
-              )
-            ),
-            child: Row(
-              children: <Widget>[
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: <Widget>[
-                      Padding(
-                        padding: EdgeInsets.only(top: 11),
-                        child: Text(
-                          app.name,
-                          overflow: TextOverflow.ellipsis,
-                          style: TextStyle(
-                            fontSize: 18.5,
-                          ),
+              )),
+          child: Row(
+            children: <Widget>[
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: <Widget>[
+                    Padding(
+                      padding: EdgeInsets.only(top: 11),
+                      child: Text(
+                        app.name,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          fontSize: 18.5,
                         ),
                       ),
-                      Padding(
-                        padding: EdgeInsets.only(top: 5),
-                        child: Text(
-                          app.description,
-                          overflow: TextOverflow.ellipsis,
-                          style: TextStyle(
-                            fontSize: 15.5,
-                            color: Colors.grey,
-                          ),
+                    ),
+                    Padding(
+                      padding: EdgeInsets.only(top: 5),
+                      child: Text(
+                        app.description,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          fontSize: 15.5,
+                          color: Colors.grey,
                         ),
                       ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
-                (_currentInstalledAppMap[app.packageName]
+              ),
+              (_currentInstalledAppMap[app.packageName]
                   ? actionButton("打开", () {
-                    var appKey = Platform.isAndroid ? app.packageName : app.bundleId;
-                    //openApp(appKey);
-                  })
+                      var appKey =
+                          _platform.isAndroid ? app.packageName : app.urlScheme;
+                      //openApp(appKey);
+                    })
                   : actionButton("获取", () {
-
-                  })
-                ),
-              ],
-            ),
+                      if (_platform.isAndroid) {
+                        // open in tencent qqdownloader.
+                        //openInSpecifyAppStore(app.packageName, 'com.tencent.android.qqdownloader', 'com.tencent.pangu.link.LinkProxyActivity');
+                      } else {
+                        // openInAppStore(app.bundleId);
+                      }
+                    })),
+            ],
           ),
         ),
-      ]
-    );
+      ),
+    ]);
   }
 
   Widget actionButton(String label, Function function) {
     return CupertinoButton(
-      child: Container(
-        width: 63,
-        height: 28,
-        alignment: Alignment.center,
-        decoration: BoxDecoration(
-          color: Colors.blueAccent,
-          borderRadius: BorderRadius.all(
-            Radius.circular(15)
-          )
-        ),
-        child: Text(
-          label,
-          style: TextStyle(
-            fontSize: 14.5,
-            color: Colors.white,
+        child: Container(
+          width: 63,
+          height: 28,
+          alignment: Alignment.center,
+          decoration: BoxDecoration(
+              color: Colors.blueAccent,
+              borderRadius: BorderRadius.all(Radius.circular(15))),
+          child: Text(
+            label,
+            style: TextStyle(
+              fontSize: 14.5,
+              color: Colors.white,
+            ),
           ),
         ),
-      ),
-      onPressed: () {
-        function();
-      }
-    );
+        onPressed: () {
+          function();
+        });
   }
 
   @override
-  void dispose(){
+  void dispose() {
     controller.dispose();
 
     super.dispose();
   }
-
 }
