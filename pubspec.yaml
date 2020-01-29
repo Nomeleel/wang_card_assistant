@@ -26,6 +26,8 @@ dependencies:
   http: ^0.12.0+2
   sqflite: ^1.1.7+3
   path_provider: ^1.5.1
+  application_management:
+    git: git@github.com:Nomeleel/application_management.git
 
 dev_dependencies:
   flutter_test:

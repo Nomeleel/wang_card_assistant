@@ -7,6 +7,7 @@ import 'app.dart';
 import 'appDao.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:platform/platform.dart';
+import 'package:application_management/application_management.dart';
 
 void main() => runApp(MyApp());
 
@@ -124,13 +125,14 @@ class _MyHomePageState extends State<MyHomePage> {
     });
   }
 
-  void checkInstallInfo(List<App> appList) {
+  void checkInstallInfo(List<App> appList) async {
     var appKeyList = appList
-        .map((item) => (_platform.isAndroid ? item.packageName : item.urlScheme))
+        .map(
+            (item) => (_platform.isAndroid ? item.packageName : item.urlScheme))
         .toList();
     appKeyList.removeWhere((item) => item == null || item == '');
-    //var isInstallMap = isInstalledMap(appKeyList);
-    //_currentInstalledAppMap.addAll(isInstallMap);
+    var isInstallMap = await isInstalledMap(appKeyList);
+    _currentInstalledAppMap.addAll(isInstallMap);
   }
 
   // TODO jump to top.
@@ -341,20 +343,7 @@ class _MyHomePageState extends State<MyHomePage> {
                   ],
                 ),
               ),
-              (_currentInstalledAppMap[app.packageName]
-                  ? actionButton("打开", () {
-                      var appKey =
-                          _platform.isAndroid ? app.packageName : app.urlScheme;
-                      //openApp(appKey);
-                    })
-                  : actionButton("获取", () {
-                      if (_platform.isAndroid) {
-                        // open in tencent qqdownloader.
-                        //openInSpecifyAppStore(app.packageName, 'com.tencent.android.qqdownloader', 'com.tencent.pangu.link.LinkProxyActivity');
-                      } else {
-                        // openInAppStore(app.bundleId);
-                      }
-                    })),
+              actionButton(app),
             ],
           ),
         ),
@@ -362,7 +351,23 @@ class _MyHomePageState extends State<MyHomePage> {
     ]);
   }
 
-  Widget actionButton(String label, Function function) {
+  Widget actionButton(App app) {
+    var appKey = _platform.isAndroid ? app.packageName : app.urlScheme;
+    return _currentInstalledAppMap.keys.contains(appKey) &&
+            _currentInstalledAppMap[appKey]
+        ? actionButtonWidget("打开", () => openApp(appKey))
+        : actionButtonWidget("获取", () {
+            if (_platform.isAndroid) {
+              // open in tencent qqdownloader.
+              openInSpecifyAppStore(appKey, 'com.tencent.android.qqdownloader',
+                  'com.tencent.pangu.link.LinkProxyActivity');
+            } else {
+              openInAppStore(app.bundleId);
+            }
+          });
+  }
+
+  Widget actionButtonWidget(String label, Function function) {
     return CupertinoButton(
         child: Container(
           width: 63,
