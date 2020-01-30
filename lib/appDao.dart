@@ -1,9 +1,8 @@
+import 'app.dart';
 import 'dart:io';
 import 'package:flutter/services.dart';
 import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
-
-import 'app.dart';
 
 class AppDao {
   final String tableName = 'app';

@@ -1,1 +1,1 @@
-{"_info":"// This is a generated file; do not edit or check into version control.","dependencyGraph":[{"name":"application_management","dependencies":[]},{"name":"path_provider","dependencies":[]},{"name":"sqflite","dependencies":[]}]}
+{"_info":"// This is a generated file; do not edit or check into version control.","dependencyGraph":[{"name":"application_management","dependencies":[]},{"name":"sqflite","dependencies":[]}]}

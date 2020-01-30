@@ -1,25 +1,24 @@
-import 'dart:convert';
-import 'dart:io';
-import 'package:flutter/cupertino.dart';
-import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
 import 'app.dart';
 import 'appDao.dart';
-import 'package:path_provider/path_provider.dart';
-import 'package:platform/platform.dart';
+import 'dart:io';
+import 'dart:math';
 import 'package:application_management/application_management.dart';
+import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
+import 'package:platform/platform.dart';
 
 void main() => runApp(MyApp());
 
 class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Flutter Demo',
-      theme: ThemeData(
-        primarySwatch: Colors.blue,
+    return CupertinoApp(
+      title: '王卡助手',
+      theme: CupertinoThemeData(
+        barBackgroundColor: Colors.white,
+        scaffoldBackgroundColor: Colors.white,
       ),
-      home: MyHomePage(title: 'Flutter Demo Home Page'),
+      home: MyHomePage(title: '免流应用'),
     );
   }
 }
@@ -39,7 +38,6 @@ class _MyHomePageState extends State<MyHomePage> {
   List<App> appList;
   ScrollController controller;
   AppDao appDao;
-  int appCount;
 
   final int showTopButtonHeightLimit = 200;
 
@@ -56,52 +54,11 @@ class _MyHomePageState extends State<MyHomePage> {
     super.initState();
   }
 
-  void getData() async {
-    bool isEnd = false;
-    int startIndex = 0;
-    var tempAppMap = Map<String, App>();
-
-    do {
-      await http
-          .get(Uri.https(
-        'pngweb.3g.qq.com',
-        '/KingSimCardFreeFlowAppListGet',
-        {'classId': "0", 'startIndex': '$startIndex', 'pageSize': '100'},
-      ))
-          .then((http.Response response) {
-        if (response.statusCode == 200) {
-          var responseData = json.decode(response.body);
-          responseData['appList']
-              .forEach((item) => tempAppMap[item['appId'].toString()] = App(
-                    item['appId'].toString(),
-                    item['appName'],
-                    item['editorIntro'],
-                    item['iconUrl'],
-                    item['packageName'],
-                    '7777777',
-                    '7777777://',
-                  ));
-
-          startIndex += 100;
-          isEnd = !responseData['isLastBatch'];
-          print(responseData['isLastBatch']);
-        } else {
-          isEnd = false;
-        }
-      });
-    } while (isEnd);
-
-    await appDao.insertMany(tempAppMap.values.toList());
-  }
-
   Future<int> getMore() async {
-    var result = await appDao.findMany(appList.length, 10);
+    var result = await appDao.findMany(appList.length, 20);
     filter(result);
     checkInstallInfo(result);
     if (result.length > 0) {
-      //setState(() {
-      //appList.addAll(result);
-      //});
       result.forEach((item) {
         appList.add(item);
         _listKey.currentState.insertItem(appList.length - 1,
@@ -135,158 +92,102 @@ class _MyHomePageState extends State<MyHomePage> {
     _currentInstalledAppMap.addAll(isInstallMap);
   }
 
-  // TODO jump to top.
-
   @override
   Widget build(BuildContext context) {
-    print('build');
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(widget.title),
+    return CupertinoPageScaffold(
+      navigationBar: CupertinoNavigationBar(
+        middle: Text(
+          widget.title,
+          style: TextStyle(
+            fontSize: 18.5,
+            fontWeight: FontWeight.w100,
+          ),
+        ),
+        trailing: CupertinoButton(
+          padding: EdgeInsets.only(
+            right: 19,
+          ),
+          child: Icon(
+            Icons.refresh,
+            size: 27,
+            color: Colors.purple,
+          ),
+          onPressed: () {
+            // TODO imp
+          },
+        ),
+        border: Border(
+          bottom: BorderSide(
+            color: Colors.grey,
+            width: 0.2,
+          ),
+        ),
       ),
-      body: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
+      child: Stack(
         children: <Widget>[
-          Text(
-            'App Count: ${appCount.toString()}',
-          ),
-          RaisedButton(
-            onPressed: () {
-              appDao.deleteAll();
-            },
-            child: Text('Delete'),
-          ),
-          RaisedButton(
-            onPressed: () {
-              getMore();
-            },
-            child: Text('Get Data'),
-          ),
-          RaisedButton(
-            onPressed: () async {
-              var count = await appDao.getCount();
-
-              setState(() {
-                appCount = count;
-              });
-            },
-            child: Text('Get Count'),
-          ),
-          RaisedButton(
-            onPressed: () async {
-              print('-----------------');
-              if (_platform.isAndroid) {
-                Directory tempDir = await getTemporaryDirectory();
-                print(tempDir.path);
-                print('-----------------');
-                Directory appDir = await getApplicationSupportDirectory();
-                print(appDir.path);
-                print('-----------------');
-                Directory appDocDir = await getApplicationDocumentsDirectory();
-                print(appDocDir.path);
-                print('-----------------');
-                await getExternalCacheDirectories()
-                  ..forEach((item) {
-                    print(item.path);
+          AnimatedList(
+            key: _listKey,
+            initialItemCount: appList.length,
+            physics: BouncingScrollPhysics(),
+            controller: controller
+              ..addListener(() {
+                if (!_isLoadMore &&
+                    controller.position.pixels >=
+                        controller.position.maxScrollExtent) {
+                  _isLoadMore = true;
+                  getMore().then((value) {
+                    if (value == 20) {
+                      _isLoadMore = false;
+                    } else {
+                      print('no more data $value');
+                      // TODO: No more data label.
+                    }
                   });
-                print('-----------------');
-                await getExternalStorageDirectories()
-                  ..forEach((item) {
-                    print(item.path);
-                  });
-                print('-----------------');
+                }
               }
-              print('-----------------');
+            ),
+            itemBuilder: (context, index, animation) {
+              return SlideTransition(
+                position: animation
+                  .drive(CurveTween(curve: Curves.elasticInOut))
+                  .drive(Tween<Offset>(
+                    begin: Offset(-1, 0),
+                    end: Offset(0, 0),
+                  )),
+                child: listItemBuilder(appList[index]),
+              );
             },
-            child: Text('Test Path'),
           ),
-          Expanded(
-            child: Stack(
-              children: <Widget>[
-                AnimatedList(
-                  key: _listKey,
-                  initialItemCount: appList.length,
-                  physics: BouncingScrollPhysics(),
-                  controller: controller
-                    ..addListener(() {
-                      print(controller.position.pixels);
-                      print(controller.hasClients);
-                      if (!_isLoadMore &&
-                          controller.position.pixels >=
-                              controller.position.maxScrollExtent) {
-                        _isLoadMore = true;
-                        getMore().then((value) {
-                          if (value == 10) {
-                            _isLoadMore = false;
-                          } else {
-                            print('no more data $value');
-                            // TODO: No more data label.
-                          }
-                        });
-                      }
-
-                      // position on 200 up and down refresh view.
-                      if ((controller.position.axisDirection ==
-                                  AxisDirection.down &&
-                              controller.position.pixels >=
-                                  showTopButtonHeightLimit) ||
-                          (controller.position.axisDirection ==
-                                  AxisDirection.up &&
-                              controller.position.pixels <=
-                                  showTopButtonHeightLimit)) {
-                        setState(() {
-                          print('refresh');
-                        });
-                      }
-                    }),
-                  itemBuilder: (context, index, animation) {
-                    return SlideTransition(
-                      position: animation
-                          .drive(CurveTween(curve: Curves.elasticInOut))
-                          .drive(Tween<Offset>(
-                            begin: Offset(-1, 0),
-                            end: Offset(0, 0),
-                          )),
-                      child: listItemBuilder(appList[index]),
+          Positioned(
+            bottom:15,
+            right: 10,
+            child: ClipOval(
+              child: Container(
+                height: 40,
+                width: 40,
+                color: Colors.purple.withOpacity(0.7),
+                child: CupertinoButton(
+                  padding: EdgeInsets.only(
+                    left: 1,
+                  ),
+                  child: Icon(
+                    Icons.arrow_upward,
+                    color: Colors.white,
+                  ),
+                  onPressed: () {
+                    controller.animateTo(
+                      0,
+                      duration: Duration(
+                        milliseconds:(controller.position.pixels * 0.3).toInt(),
+                      ),
+                      curve: Curves.easeInOut,
                     );
                   },
                 ),
-                Positioned(
-                  bottom: (controller.hasClients &&
-                          controller.position.pixels > showTopButtonHeightLimit)
-                      ? 15
-                      : -50,
-                  right: 10,
-                  child: ClipOval(
-                    child: Container(
-                      height: 40,
-                      width: 40,
-                      color: Theme.of(context).focusColor,
-                      child: IconButton(
-                        icon: Icon(Icons.arrow_upward),
-                        onPressed: () => {
-                          controller.animateTo(
-                            0,
-                            duration: Duration(
-                              milliseconds:
-                                  (controller.position.pixels * 0.3).toInt(),
-                            ),
-                            curve: Curves.easeInOut,
-                          )
-                        },
-                      ),
-                    ),
-                  ),
-                ),
-              ],
+              ),
             ),
           ),
         ],
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: getData,
-        tooltip: 'Get Data',
-        child: Icon(Icons.refresh),
       ),
     );
   }
@@ -296,8 +197,9 @@ class _MyHomePageState extends State<MyHomePage> {
     return Row(children: <Widget>[
       Padding(
         padding: EdgeInsets.fromLTRB(15, 10, 10, 10),
-        child: Image.network(
-          app.iconUrl,
+        child: FadeInImage.assetNetwork(
+          placeholder: 'assets/image/${Random().nextInt(7)}.png',
+          image: app.iconUrl,
           width: 55,
           height: 55,
         ),
@@ -353,40 +255,39 @@ class _MyHomePageState extends State<MyHomePage> {
 
   Widget actionButton(App app) {
     var appKey = _platform.isAndroid ? app.packageName : app.urlScheme;
-    return _currentInstalledAppMap.keys.contains(appKey) &&
-            _currentInstalledAppMap[appKey]
-        ? actionButtonWidget("打开", () => openApp(appKey))
-        : actionButtonWidget("获取", () {
-            if (_platform.isAndroid) {
-              // open in tencent qqdownloader.
-              openInSpecifyAppStore(appKey, 'com.tencent.android.qqdownloader',
-                  'com.tencent.pangu.link.LinkProxyActivity');
-            } else {
-              openInAppStore(app.bundleId);
-            }
-          });
+    return _currentInstalledAppMap.keys.contains(appKey) && _currentInstalledAppMap[appKey]
+      ? actionButtonWidget("打开", () => openApp(appKey))
+      : actionButtonWidget("获取", () {
+        if (_platform.isAndroid) {
+          // open in tencent qqdownloader.
+          openInSpecifyAppStore(appKey, 'com.tencent.android.qqdownloader',
+              'com.tencent.pangu.link.LinkProxyActivity');
+        } else {
+          openInAppStore(app.bundleId);
+        }
+      }
+    );
   }
 
   Widget actionButtonWidget(String label, Function function) {
     return CupertinoButton(
-        child: Container(
-          width: 63,
-          height: 28,
-          alignment: Alignment.center,
-          decoration: BoxDecoration(
-              color: Colors.blueAccent,
-              borderRadius: BorderRadius.all(Radius.circular(15))),
-          child: Text(
-            label,
-            style: TextStyle(
-              fontSize: 14.5,
-              color: Colors.white,
-            ),
+      child: Container(
+        width: 63,
+        height: 28,
+        alignment: Alignment.center,
+        decoration: BoxDecoration(
+            color: Colors.blueAccent,
+            borderRadius: BorderRadius.all(Radius.circular(15))),
+        child: Text(
+          label,
+          style: TextStyle(
+            fontSize: 14.5,
+            color: Colors.white,
           ),
         ),
-        onPressed: () {
-          function();
-        });
+      ),
+      onPressed: () => function(),
+    );
   }
 
   @override
