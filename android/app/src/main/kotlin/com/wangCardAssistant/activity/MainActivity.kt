@@ -1,4 +1,4 @@
-package com.example.wang_card_assistant
+package com.wangCardAssistant.activity
 
 import android.os.Bundle
 
