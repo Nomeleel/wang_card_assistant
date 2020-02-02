@@ -18,8 +18,72 @@
 	<string>$(FLUTTER_BUILD_NAME)</string>
 	<key>CFBundleSignature</key>
 	<string>????</string>
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>wkassistant</string>
+				<string>wkzs</string>
+			</array>
+		</dict>
+	</array>
 	<key>CFBundleVersion</key>
 	<string>$(FLUTTER_BUILD_NUMBER)</string>
+	<key>LSApplicationQueriesSchemes</key>
+	<array>
+		<string>weixin</string>
+		<string>tenvideo</string>
+		<string>qqmusic</string>
+		<string>mqqsecure</string>
+		<string>qqsports</string>
+		<string>qqmap</string>
+		<string>mttbrowser</string>
+		<string>qqnews</string>
+		<string>cctvvideo</string>
+		<string>weishi</string>
+		<string>kugouURL</string>
+		<string>kwai</string>
+		<string>mqq</string>
+		<string>douyuapp</string>
+		<string>retriever</string>
+		<string>yykiwi</string>
+		<string>openanjuke</string>
+		<string>dianping</string>
+		<string>firevideo</string>
+		<string>wbmain</string>
+		<string>solar</string>
+		<string>kuaikansso</string>
+		<string>nextradio</string>
+		<string>photogallery</string>
+		<string>tencentedu</string>
+		<string>acfun</string>
+		<string>imeituan</string>
+		<string>sinaweibo</string>
+		<string>tencentlaunch1104466820</string>
+		<string>tencent382</string>
+		<string>xhsdiscover</string>
+		<string>iting</string>
+		<string>weread</string>
+		<string>mqzone</string>
+		<string>comicreader</string>
+		<string>gtfreewifi</string>
+		<string>qmkege</string>
+		<string>tim</string>
+		<string>keep</string>
+		<string>qqreader</string>
+		<string>cntvCBox</string>
+		<string>com.kuwo.kwmusic.kwmusicForKwsing</string>
+		<string>qqpim</string>
+		<string>mqqiapi</string>
+		<string>tencent100692648</string>
+		<string>tencentrm</string>
+		<string>weiyun</string>
+		<string>blackkey</string>
+		<string>tgclub</string>
+	</array>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
 	<key>UILaunchStoryboardName</key>
