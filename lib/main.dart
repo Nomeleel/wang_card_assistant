@@ -40,9 +40,11 @@ class _MyHomePageState extends State<MyHomePage> {
   AppDao appDao;
 
   final int showTopButtonHeightLimit = 200;
+  final int pageSize = 20;
 
   bool _isLoadMore;
   Map<String, bool> _currentInstalledAppMap;
+  int pageNumber = 0;
 
   @override
   void initState() {
@@ -55,9 +57,11 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   Future<int> getMore() async {
-    var result = await appDao.findMany(appList.length, 20);
+    var result = await appDao.findMany(pageNumber * pageSize, pageSize);
+    var dataCount = result.length;
+    pageNumber++;
     filter(result);
-    checkInstallInfo(result);
+    await checkInstallInfo(result);
     if (result.length > 0) {
       result.forEach((item) {
         appList.add(item);
@@ -66,23 +70,18 @@ class _MyHomePageState extends State<MyHomePage> {
       });
     }
 
-    return result.length;
+    return dataCount;
   }
 
   void filter(List<App> appList) {
-    appList.removeWhere((item) {
-      if (_platform.isAndroid) {
-        return item.packageName == null || item.packageName == '';
-      } else if (_platform.isIOS) {
-        return item.bundleId == null || item.bundleId == '';
-      } else {
-        // Nothing to do.
-      }
-      return false;
-    });
+    appList.removeWhere((item) => isNullorEmpty(_platform.isAndroid ? item.packageName : item.bundleId));
   }
 
-  void checkInstallInfo(List<App> appList) async {
+  bool isNullorEmpty(String str) {
+    return str == null || str.isEmpty;
+  }
+
+  Future<void> checkInstallInfo(List<App> appList) async {
     var appKeyList = appList
         .map(
             (item) => (_platform.isAndroid ? item.packageName : item.urlScheme))
