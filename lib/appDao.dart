@@ -1,8 +1,9 @@
-import 'app.dart';
 import 'dart:io';
 import 'package:flutter/services.dart';
 import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
+
+import 'app.dart';
 
 class AppDao {
   final String tableName = 'app';
@@ -20,16 +21,19 @@ class AppDao {
     initDataBase();
   }
 
-  Future initAndRun(Function fun) async {
-    await initDataBase().then(fun);
+  Future<void> initAndRun(Function fun) async {
+    await initDataBase();
+    fun();
   }
 
-  Future initDataBase() async {
-    var databasesPath = await getDatabasesPath();
-    String fullPath = join(databasesPath, 'local.db');
+  Future<void> initDataBase() async {
+    final String databasesPath = await getDatabasesPath();
+    final String fullPath = join(databasesPath, 'local.db');
     if (!(await databaseExists(fullPath))) {
-        ByteData byteData = await rootBundle.load('assets/database/local.db');
-        File(fullPath)..writeAsBytes(byteData.buffer.asInt8List(0));
+      final ByteData byteData =
+          await rootBundle.load('assets/database/local.db');
+      final File file = File(fullPath);
+      file.writeAsBytes(byteData.buffer.asInt8List(0));
     }
 
     database = await openDatabase(fullPath);
@@ -52,19 +56,22 @@ class AppDao {
     */
   }
 
-  Future insertMany(List<App> appList) async {
-    Batch batch = database.batch();
-    appList.forEach((item) => batch.insert(tableName, toMap(item)));
-    
+  Future<void> insertMany(List<App> appList) async {
+    final Batch batch = database.batch();
+    final void Function(App) addData =
+        (App app) => batch.insert(tableName, toMap(app));
+    appList.forEach(addData);
+
     await batch.commit();
   }
 
-  Future deleteAll() async {
+  Future<void> deleteAll() async {
     await database.rawDelete('DELETE FROM $tableName');
   }
 
   Future<int> getCount() async {
-    return Sqflite.firstIntValue(await database.rawQuery('SELECT COUNT(*) FROM $tableName'));
+    return Sqflite.firstIntValue(
+        await database.rawQuery('SELECT COUNT(*) FROM $tableName'));
   }
 
   Future<List<App>> findAll() async {
@@ -72,11 +79,12 @@ class AppDao {
   }
 
   Future<List<App>> findMany(int startIndex, int count) async {
-    return mapList(await database.rawQuery('SELECT * FROM $tableName LIMIT $startIndex, $count'));
+    return mapList(await database
+        .rawQuery('SELECT * FROM $tableName LIMIT $startIndex, $count'));
   }
 
   Map<String, dynamic> toMap(App app) {
-    return <String, dynamic> {
+    return <String, dynamic>{
       colId: app.id,
       colName: app.name,
       colDescription: app.description,
@@ -89,20 +97,21 @@ class AppDao {
 
   App map(Map<String, dynamic> map) {
     return App(
-      map[colId],
-      map[colName],
-      map[colDescription],
-      map[colIconUrl],
-      map[colPackageName],
-      map[colBundleId],
-      map[colUrlScheme],
+      map[colId]?.toString(),
+      map[colName]?.toString(),
+      map[colDescription]?.toString(),
+      map[colIconUrl]?.toString(),
+      map[colPackageName]?.toString(),
+      map[colBundleId]?.toString(),
+      map[colUrlScheme]?.toString(),
     );
   }
 
   List<App> mapList(List<Map<String, dynamic>> mapList) {
-    var appList = List<App>();
-    mapList.forEach((item) => appList.add(map(item)));
+    final List<App> appList = <App>[];
+    final void Function(Map<String, dynamic>) add =
+        (Map<String, dynamic> item) => appList.add(map(item));
+    mapList.forEach(add);
     return appList;
   }
-
 }
