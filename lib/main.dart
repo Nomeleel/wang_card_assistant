@@ -5,7 +5,6 @@ import 'dart:math';
 import 'package:application_management/application_management.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:platform/platform.dart';
 
 void main() => runApp(MyApp());
 
@@ -32,7 +31,6 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  static const Platform _platform = const LocalPlatform();
 
   final _listKey = GlobalKey<AnimatedListState>();
   List<App> appList;
@@ -74,7 +72,7 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   void filter(List<App> appList) {
-    appList.removeWhere((item) => isNullorEmpty(_platform.isAndroid ? item.packageName : item.bundleId));
+    appList.removeWhere((item) => isNullorEmpty(Platform.isAndroid ? item.packageName : item.bundleId));
   }
 
   bool isNullorEmpty(String str) {
@@ -84,7 +82,7 @@ class _MyHomePageState extends State<MyHomePage> {
   Future<void> checkInstallInfo(List<App> appList) async {
     var appKeyList = appList
         .map(
-            (item) => (_platform.isAndroid ? item.packageName : item.urlScheme))
+            (item) => (Platform.isAndroid ? item.packageName : item.urlScheme))
         .toList();
     appKeyList.removeWhere((item) => item == null || item == '');
     var isInstallMap = await isInstalledMap(appKeyList);
@@ -253,11 +251,11 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   Widget actionButton(App app) {
-    var appKey = _platform.isAndroid ? app.packageName : app.urlScheme;
+    var appKey = Platform.isAndroid ? app.packageName : app.urlScheme;
     return _currentInstalledAppMap.keys.contains(appKey) && _currentInstalledAppMap[appKey]
       ? actionButtonWidget("打开", () => openApp(appKey))
       : actionButtonWidget("获取", () {
-        if (_platform.isAndroid) {
+        if (Platform.isAndroid) {
           // open in tencent qqdownloader.
           openInSpecifyAppStore(appKey, 'com.tencent.android.qqdownloader',
               'com.tencent.pangu.link.LinkProxyActivity');
