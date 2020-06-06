@@ -10,14 +10,14 @@
 
 | Android |  | iOS |
 | :------: | :------: | :------: |
-| <img src="markdown assets\image\Android_1.jpg" width="300"/> | | <img src="markdown assets\image\Ios_1.jpg" width="340"/> |
-| <img src="markdown assets\image\Android_2.jpg" width="300"/> | | <img src="markdown assets\image\Ios_2.jpg" width="340"/> |
+| <img src="https://raw.githubusercontent.com/Nomeleel/Assets/master/wang_card_assistant/markdown/Android_1.jpg" width="300"/> | | <img src="https://raw.githubusercontent.com/Nomeleel/Assets/master/wang_card_assistant/markdown/Ios_1.jpg" width="340"/> |
+| <img src="https://raw.githubusercontent.com/Nomeleel/Assets/master/wang_card_assistant/markdown/Android_2.jpg" width="300"/> | | <img src="https://raw.githubusercontent.com/Nomeleel/Assets/master/wang_card_assistant/markdown/Ios_2.jpg" width="340"/> |
 
 # 运行动态图
 
 | Android |  | iOS |
 | :------: | :------: | :------: |
-| <img src="markdown assets\image\Android_list.gif" width="300"/> | | <img src="markdown assets\image\Ios_list.gif" width="300"/> |
-| <img src="markdown assets\image\Android_open.gif" width="300"/> | | <img src="markdown assets\image\Ios_open.gif" width="300"/> |
-| <img src="markdown assets\image\Android_get.gif" width="300"/> | | <img src="markdown assets\image\Ios_get.gif" width="300"/> |
+| <img src="https://raw.githubusercontent.com/Nomeleel/Assets/master/wang_card_assistant/markdown/Android_list.gif" width="300"/> | | <img src="https://raw.githubusercontent.com/Nomeleel/Assets/master/wang_card_assistant/markdown/Ios_list.gif" width="300"/> |
+| <img src="https://raw.githubusercontent.com/Nomeleel/Assets/master/wang_card_assistant/markdown/Android_open.gif" width="300"/> | | <img src="https://raw.githubusercontent.com/Nomeleel/Assets/master/wang_card_assistant/markdown/Ios_open.gif" width="300"/> |
+| <img src="https://raw.githubusercontent.com/Nomeleel/Assets/master/wang_card_assistant/markdown/Android_get.gif" width="300"/> | | <img src="https://raw.githubusercontent.com/Nomeleel/Assets/master/wang_card_assistant/markdown/Ios_get.gif" width="300"/> |
 
